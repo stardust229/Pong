@@ -15,11 +15,19 @@ GLfloat T[16] = {1.,0.,0.,0.,\
                  0., 1., 0., 0.,\
                  0.,0.,1.,0.,\
                  0.,0.,0.,1.};
-GLfloat RadiusOfBall = 5.;
+GLfloat RadiusOfBall = 4.;
 
+// Tablero
+float boardWidth = 160.0f;
+float boardHeight = 120.0f;
+// Raquetas
+float racketWidth = 4.0f;
+float racketHeight = 20.0f;
 // Posicion de las raquetas de los jugadores
-double leftRacketY = 0.0f;
-double rightRacketY = 0.0f;
+double leftRacketY = boardHeight/2;
+double rightRacketY = boardHeight/2;
+double leftRacketX = racketWidth/2;
+double rightRacketX = boardWidth - racketWidth/2;
 
 
 GLint circle_points = 100;
@@ -35,14 +43,14 @@ void MyCircle2f(GLfloat centerx, GLfloat centery, GLfloat radius){
 }
 
 // Draw the ball, centered at the origin
-void draw_ball() {
+void drawBall(float x, float y) {
   glColor3f(255.,255.,255.);
-  MyCircle2f(0.,0.,RadiusOfBall);
+  MyCircle2f(x,y,RadiusOfBall);
 }
 
 void drawRacket(float x, float y) {
     // Draw 20x100 rectangle centered at (x,y)
-    glRectf(x - 10, y - 50, x + 10, y + 50);
+    glRectf(x-(racketWidth/2), y-(racketHeight/2), x+(racketWidth/2), y+(racketHeight/2));
 }
 
 void Display(void)
@@ -59,7 +67,7 @@ void Display(void)
 	if (ypos < RadiusOfBall && ydir < 0 ) {
     cout << "Touched bottom wall\n";
 		ydir = -ydir;
-	} else if (ypos > 120-RadiusOfBall && ydir > 0 ) {
+	} else if (ypos > boardHeight-RadiusOfBall && ydir > 0 ) {
     cout << "Touched top wall\n";
     ydir = -ydir;
   }
@@ -69,18 +77,21 @@ void Display(void)
   if (xpos < RadiusOfBall && xdir < 0 ) {
     cout << "Touched left wall\n";
 		xdir = -xdir;
-	} else if (xpos > 160-RadiusOfBall && xdir > 0 ) {
+	} else if (xpos > boardWidth-RadiusOfBall && xdir > 0 ) {
     cout << "Touched right wall\n";
     xdir = -xdir;
   }
   xpos = xpos+xdir;
 
-  //Translate the bouncing ball to its new position
-  T[12]= xpos;
-  T[13] = ypos;
-  glLoadMatrixf(T);
+  drawRacket(leftRacketX, leftRacketY);
+  drawRacket(rightRacketX, rightRacketY);
 
-  draw_ball();
+  //Translate the bouncing ball to its new position
+  //T[12]= xpos;
+  //T[13] = ypos;
+  //glLoadMatrixf(T);
+
+  drawBall(xpos, ypos);
   glutPostRedisplay();
 }
 
