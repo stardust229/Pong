@@ -18,16 +18,17 @@ GLfloat T[16] = {1.,0.,0.,0.,\
 GLfloat RadiusOfBall = 4.;
 
 // Tablero
-float boardWidth = 160.0f;
-float boardHeight = 120.0f;
+const float BOARD_WIDTH = 160.0f;
+const float BOARD_HEIGHT = 120.0f;
 // Raquetas
-float racketWidth = 4.0f;
-float racketHeight = 20.0f;
+const float RACKET_WIDTH = 4.0f;
+const float RACKET_HEIGHT = 20.0f;
+const float RACKET_SPEED = 5.0f;
 // Posicion de las raquetas de los jugadores
-double leftRacketY = boardHeight/2;
-double rightRacketY = boardHeight/2;
-double leftRacketX = racketWidth/2;
-double rightRacketX = boardWidth - racketWidth/2;
+double leftRacketY = BOARD_HEIGHT/2;
+double rightRacketY = BOARD_HEIGHT/2;
+double leftRacketX = RACKET_WIDTH/2;
+double rightRacketX = BOARD_WIDTH - RACKET_WIDTH/2;
 
 
 GLint circle_points = 100;
@@ -50,7 +51,47 @@ void drawBall(float x, float y) {
 
 void drawRacket(float x, float y) {
     // Draw 20x100 rectangle centered at (x,y)
-    glRectf(x-(racketWidth/2), y-(racketHeight/2), x+(racketWidth/2), y+(racketHeight/2));
+    glRectf(x-(RACKET_WIDTH/2), y-(RACKET_HEIGHT/2), x+(RACKET_WIDTH/2), y+(RACKET_HEIGHT/2));
+}
+
+// Add key state tracking
+#define KEY_COUNT 256
+bool keyStates[KEY_COUNT] = {false};
+bool specialKeyStates[KEY_COUNT] = {false};
+// Modified keyboard handlers
+void keyboard(int key, int x, int y) {
+    specialKeyStates[key] = true;  // Key pressed
+}
+void keyboardUp(int key, int x, int y) {
+    specialKeyStates[key] = false; // Key released
+}
+void keyboardNormal(unsigned char key, int x, int y) {
+    keyStates[key] = true;        // Key pressed
+}
+void keyboardNormalUp(unsigned char key, int x, int y) {
+    keyStates[key] = false;       // Key released
+}
+
+void computeAndDisplayRackets() {
+  // Handle left paddle (W/S)
+  if(keyStates['w'] || keyStates['W']) {
+      if(leftRacketY < BOARD_HEIGHT-(RACKET_HEIGHT/2)) leftRacketY += RACKET_SPEED;
+  }
+  if(keyStates['s'] || keyStates['S']) {
+      if(leftRacketY > RACKET_HEIGHT/2) leftRacketY -= RACKET_SPEED;
+  }
+  // Handle right paddle (Up/Down)
+  if(specialKeyStates[GLUT_KEY_UP]) {
+    printf("Up key is pressed\n");
+    if(rightRacketY < BOARD_HEIGHT-(RACKET_HEIGHT/2)) rightRacketY += RACKET_SPEED;
+  }
+  if(specialKeyStates[GLUT_KEY_DOWN]) {
+    printf("Down key is pressed\n");
+    if(rightRacketY > RACKET_HEIGHT/2) rightRacketY -= RACKET_SPEED;
+  }
+
+  drawRacket(leftRacketX, leftRacketY);
+  drawRacket(rightRacketX, rightRacketY);
 }
 
 void Display(void)
@@ -67,7 +108,7 @@ void Display(void)
 	if (ypos < RadiusOfBall && ydir < 0 ) {
     cout << "Touched bottom wall\n";
 		ydir = -ydir;
-	} else if (ypos > boardHeight-RadiusOfBall && ydir > 0 ) {
+	} else if (ypos > BOARD_HEIGHT-RadiusOfBall && ydir > 0 ) {
     cout << "Touched top wall\n";
     ydir = -ydir;
   }
@@ -77,21 +118,21 @@ void Display(void)
   if (xpos < RadiusOfBall && xdir < 0 ) {
     cout << "Touched left wall\n";
 		xdir = -xdir;
-	} else if (xpos > boardWidth-RadiusOfBall && xdir > 0 ) {
+	} else if (xpos > BOARD_WIDTH-RadiusOfBall && xdir > 0 ) {
     cout << "Touched right wall\n";
     xdir = -xdir;
   }
   xpos = xpos+xdir;
 
-  drawRacket(leftRacketX, leftRacketY);
-  drawRacket(rightRacketX, rightRacketY);
+  drawBall(xpos, ypos);
+
+  computeAndDisplayRackets();
 
   //Translate the bouncing ball to its new position
   //T[12]= xpos;
   //T[13] = ypos;
   //glLoadMatrixf(T);
 
-  drawBall(xpos, ypos);
   glutPostRedisplay();
 }
 
@@ -122,7 +163,14 @@ int main(int argc, char* argv[])
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
   glutInitWindowSize (320, 240);
   glutCreateWindow("Bouncing Ball");
+
+  glutKeyboardFunc(keyboardNormal);
+  glutKeyboardUpFunc(keyboardNormalUp);
+  glutSpecialFunc(keyboard);
+  glutSpecialUpFunc(keyboardUp);
+
   init();
+  glutSetKeyRepeat(0);
   glutDisplayFunc(Display);
   glutReshapeFunc(reshape);
   glutMainLoop();
