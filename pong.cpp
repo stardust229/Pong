@@ -7,15 +7,15 @@ using namespace std;
 
 #define PI 3.1415926535898
 
-double xpos, ypos, ydir, xdir;         // x and y position for house to be drawn
-double rot, rdir;             // rotation
-int SPEED = 50;        // speed of timer call back in msecs
+// x and y position for ball
+double xpos, ypos, ydir, xdir;
+
+int SPEED = 50;   // speed of timer call back in msecs
 GLfloat T[16] = {1.,0.,0.,0.,\
                  0., 1., 0., 0.,\
                  0.,0.,1.,0.,\
                  0.,0.,0.,1.};
 GLfloat RadiusOfBall = 5.;
-
 
 // Posicion de las raquetas de los jugadores
 double leftRacketY = 0.0f;
@@ -52,19 +52,28 @@ void Display(void)
 
   //clear all pixels with the specified clear color
   glClear(GL_COLOR_BUFFER_BIT);
-  // 160 is max X value in our world
-	// Define X position of the ball to be at center of window
-	xpos = 80.;
 
-	// Shape has hit the ground! Stop moving and start squashing down and then back up
-	if (ypos == RadiusOfBall && ydir == -1  ) {
-    cout << "Touched bottom\n";
-		ydir = 1;
-	} else if (ypos == 120-RadiusOfBall && ydir == 1 ) {
-    cout << "Touched top\n";
-    ydir = -1;
+	// Ball collides with walls
+  // Vertical movement:
+  // 120 is max Y value in our world
+	if (ypos < RadiusOfBall && ydir < 0 ) {
+    cout << "Touched bottom wall\n";
+		ydir = -ydir;
+	} else if (ypos > 120-RadiusOfBall && ydir > 0 ) {
+    cout << "Touched top wall\n";
+    ydir = -ydir;
   }
   ypos = ypos+ydir;
+  // Horizontal movement:
+  // 160 is max X value in our world
+  if (xpos < RadiusOfBall && xdir < 0 ) {
+    cout << "Touched left wall\n";
+		xdir = -xdir;
+	} else if (xpos > 160-RadiusOfBall && xdir > 0 ) {
+    cout << "Touched right wall\n";
+    xdir = -xdir;
+  }
+  xpos = xpos+xdir;
 
   //Translate the bouncing ball to its new position
   T[12]= xpos;
@@ -92,17 +101,12 @@ void reshape (int w, int h)
 
 
 void init(void){
-  //set the clear color to be white
-  //glClearColor(0.0,0.8,0.0,1.0);
-  // initial position set to 0,0
-  xpos = 60; ypos = RadiusOfBall; xdir = 1; ydir = 1;
-  rot = 0;
+  xpos = 60; ypos = RadiusOfBall; xdir = 0.7; ydir = 1;
 }
 
 
 int main(int argc, char* argv[])
 {
-
   glutInit( & argc, argv );
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
   glutInitWindowSize (320, 240);
