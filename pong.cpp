@@ -144,7 +144,7 @@ void Display(void)
     (ypos <= rightRacketY + RACKET_HEIGHT/2 + RadiusOfBall + 1 && ypos > rightRacketY + RACKET_HEIGHT/2 + RadiusOfBall) ||
     (ypos >= rightRacketY - RACKET_HEIGHT/2 - RadiusOfBall - 1 && ypos < rightRacketY - RACKET_HEIGHT/2 - RadiusOfBall)
     ) && xdir>0) {
-    xdir = -xdir;
+    ydir = -ydir;
   }
 
 	// Ball collides with walls
