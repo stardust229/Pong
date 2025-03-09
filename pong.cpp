@@ -3,6 +3,8 @@
                      // it also includes gl.h and glu.h for the openGL library calls
 #include <math.h>
 #include <iostream>
+#include <random>
+#include <cmath>
 using namespace std;
 
 #define PI 3.1415926535898
@@ -10,7 +12,7 @@ using namespace std;
 // x and y position for ball
 double xpos, ypos, ydir, xdir;
 
-int SPEED = 50;   // speed of timer call back in msecs
+int SPEED = 24;   // speed of timer call back in msecs
 GLfloat T[16] = {1.,0.,0.,0.,\
                  0., 1., 0., 0.,\
                  0.,0.,1.,0.,\
@@ -29,6 +31,11 @@ double leftRacketY = BOARD_HEIGHT/2;
 double rightRacketY = BOARD_HEIGHT/2;
 double leftRacketX = RACKET_WIDTH/2;
 double rightRacketX = BOARD_WIDTH - RACKET_WIDTH/2;
+// Puntos
+int rightScore = 0;
+int leftScore = 0;
+// Ball speed
+//const float BALL_SPEED = 
 
 
 GLint circle_points = 100;
@@ -82,16 +89,38 @@ void computeAndDisplayRackets() {
   }
   // Handle right paddle (Up/Down)
   if(specialKeyStates[GLUT_KEY_UP]) {
-    printf("Up key is pressed\n");
     if(rightRacketY < BOARD_HEIGHT-(RACKET_HEIGHT/2)) rightRacketY += RACKET_SPEED;
   }
   if(specialKeyStates[GLUT_KEY_DOWN]) {
-    printf("Down key is pressed\n");
     if(rightRacketY > RACKET_HEIGHT/2) rightRacketY -= RACKET_SPEED;
   }
-
   drawRacket(leftRacketX, leftRacketY);
   drawRacket(rightRacketX, rightRacketY);
+}
+
+double get_random_double() {
+    static std::mt19937 eng(std::random_device{}());
+    static std::bernoulli_distribution selector(0.5); // 50% chance for each range
+    static std::uniform_real_distribution<double> negative_dist(-0.5, -0.2);
+    static std::uniform_real_distribution<double> positive_dist(0.2, 0.5);
+    return selector(eng) ? positive_dist(eng) : negative_dist(eng); 
+}
+
+void resetBall() {
+  ypos = BOARD_HEIGHT/2;
+  xpos = BOARD_WIDTH/2;
+  ydir = get_random_double();
+  xdir = get_random_double();
+}
+
+void score(char sideThatScored) {
+  if (sideThatScored == 'L') { // Left side scored
+    leftScore += 1;
+  } else { // Right side scored
+    rightScore += 1;
+  }
+  std::cout << "\rLeft score: " << leftScore << ", Right score: " << rightScore << "    " << std::flush;
+  resetBall();
 }
 
 void Display(void)
@@ -102,37 +131,39 @@ void Display(void)
   //clear all pixels with the specified clear color
   glClear(GL_COLOR_BUFFER_BIT);
 
-	// Ball collides with walls
-  // Vertical movement:
-  // 120 is max Y value in our world
-	if (ypos < RadiusOfBall && ydir < 0 ) {
-    cout << "Touched bottom wall\n";
-		ydir = -ydir;
-	} else if (ypos > BOARD_HEIGHT-RadiusOfBall && ydir > 0 ) {
-    cout << "Touched top wall\n";
-    ydir = -ydir;
-  }
-  ypos = ypos+ydir;
-  // Horizontal movement:
-  // 160 is max X value in our world
-  if (xpos < RadiusOfBall && xdir < 0 ) {
-    cout << "Touched left wall\n";
-		xdir = -xdir;
-	} else if (xpos > BOARD_WIDTH-RadiusOfBall && xdir > 0 ) {
-    cout << "Touched right wall\n";
+  // Ball collides with racket's longer side
+  if ((xpos <= RadiusOfBall + RACKET_WIDTH) && (ypos <= leftRacketY + RACKET_HEIGHT/2 && ypos >= leftRacketY - RACKET_HEIGHT/2) && xdir<0) {
+    xdir = -xdir;
+  } 
+  if ((xpos >= BOARD_WIDTH - RadiusOfBall - RACKET_WIDTH) && (ypos <= rightRacketY + RACKET_HEIGHT/2 && ypos >= rightRacketY - RACKET_HEIGHT/2) && xdir>0) {
     xdir = -xdir;
   }
-  xpos = xpos+xdir;
+  // Ball collides with racket's top or bottom side
+  //if ()
+
+	// Ball collides with walls
+  // Vertical movement:
+	if (ypos < RadiusOfBall && ydir < 0 ) {
+		ydir = -ydir;
+	} else if (ypos > BOARD_HEIGHT-RadiusOfBall && ydir > 0 ) {
+    ydir = -ydir;
+  }
+  // Horizontal movement:
+  if (xpos < RadiusOfBall) {
+    score('R');
+	} else if (xpos > BOARD_WIDTH-RadiusOfBall) {
+    score('L');
+  }
+
+  // Compute next position
+  double dx = xdir;
+  double dy = ydir;
+  double magnitude = std::sqrt(dx*dx + dy*dy);
+  xpos = xpos + dx/magnitude;
+  ypos = ypos + dy/magnitude;
 
   drawBall(xpos, ypos);
-
   computeAndDisplayRackets();
-
-  //Translate the bouncing ball to its new position
-  //T[12]= xpos;
-  //T[13] = ypos;
-  //glLoadMatrixf(T);
-
   glutPostRedisplay();
 }
 
@@ -148,7 +179,6 @@ void reshape (int w, int h)
    gluOrtho2D(0.0, 160.0, 0.0, 120.0);
    glMatrixMode(GL_MODELVIEW);
    glLoadIdentity ();
-
 }
 
 
