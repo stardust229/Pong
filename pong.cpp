@@ -23,7 +23,7 @@ GLfloat RadiusOfBall = 4.;
 const float BOARD_WIDTH = 160.0f;
 const float BOARD_HEIGHT = 120.0f;
 // Raquetas
-const float RACKET_WIDTH = 4.0f;
+const float RACKET_WIDTH = 10.0f;
 const float RACKET_HEIGHT = 20.0f;
 const float RACKET_SPEED = 5.0f;
 // Posicion de las raquetas de los jugadores
@@ -34,9 +34,6 @@ double rightRacketX = BOARD_WIDTH - RACKET_WIDTH/2;
 // Puntos
 int rightScore = 0;
 int leftScore = 0;
-// Ball speed
-//const float BALL_SPEED = 
-
 
 GLint circle_points = 100;
 void MyCircle2f(GLfloat centerx, GLfloat centery, GLfloat radius){
@@ -132,14 +129,23 @@ void Display(void)
   glClear(GL_COLOR_BUFFER_BIT);
 
   // Ball collides with racket's longer side
-  if ((xpos <= RadiusOfBall + RACKET_WIDTH) && (ypos <= leftRacketY + RACKET_HEIGHT/2 && ypos >= leftRacketY - RACKET_HEIGHT/2) && xdir<0) {
+  if ((xpos <= RadiusOfBall + RACKET_WIDTH) && (ypos <= leftRacketY + RACKET_HEIGHT/2 + RadiusOfBall && ypos >= leftRacketY - RACKET_HEIGHT/2 - RadiusOfBall) && xdir<0) {
     xdir = -xdir;
-  } 
-  if ((xpos >= BOARD_WIDTH - RadiusOfBall - RACKET_WIDTH) && (ypos <= rightRacketY + RACKET_HEIGHT/2 && ypos >= rightRacketY - RACKET_HEIGHT/2) && xdir>0) {
+  } else if ((xpos >= BOARD_WIDTH - RadiusOfBall - RACKET_WIDTH) && (ypos <= rightRacketY + RACKET_HEIGHT/2 + RadiusOfBall && ypos >= rightRacketY - RACKET_HEIGHT/2 - RadiusOfBall) && xdir>0) {
     xdir = -xdir;
   }
   // Ball collides with racket's top or bottom side
-  //if ()
+  if ((xpos <= RadiusOfBall + RACKET_WIDTH) && (
+    (ypos <= leftRacketY + RACKET_HEIGHT/2 + RadiusOfBall + 1 && ypos > leftRacketY + RACKET_HEIGHT/2 + RadiusOfBall) || 
+    (ypos >= leftRacketY - RACKET_HEIGHT/2 - RadiusOfBall - 1 && ypos < leftRacketY - RACKET_HEIGHT/2 - RadiusOfBall)
+    ) && xdir<0) {
+    ydir = -ydir;
+  } else if ((xpos >= BOARD_WIDTH - RadiusOfBall - RACKET_WIDTH) && (
+    (ypos <= rightRacketY + RACKET_HEIGHT/2 + RadiusOfBall + 1 && ypos > rightRacketY + RACKET_HEIGHT/2 + RadiusOfBall) ||
+    (ypos >= rightRacketY - RACKET_HEIGHT/2 - RadiusOfBall - 1 && ypos < rightRacketY - RACKET_HEIGHT/2 - RadiusOfBall)
+    ) && xdir>0) {
+    xdir = -xdir;
+  }
 
 	// Ball collides with walls
   // Vertical movement:
